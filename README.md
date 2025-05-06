@@ -1,84 +1,78 @@
-# Turborepo starter
+# Product Inventory Monorepo
 
-This Turborepo starter is maintained by the Turborepo core team.
+This is a monorepo for a production-ready Product Inventory application, built with:
 
-## Using this example
+- **Frontend:** Next.js (TypeScript)
+- **Backend:** NestJS (TypeScript)
+- **Database:** PostgreSQL (via Docker)
+- **ORM:** Prisma
+- **Monorepo Tooling:** Turborepo
+- **Containerization:** Docker
 
-Run the following command:
+---
+
+## Project Structure
+product-inventory/
+├── apps/
+│ ├── frontend/ # Next.js app
+│ └── backend/ # NestJS app
+├── packages/ # (optional: shared code/config)
+├── docker-compose.yml
+├── turbo.json
+└── README.md
+
+
+---
+
+## Getting Started
+
+### 1. Clone the repository
 
 ```sh
-npx create-turbo@latest
+git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+cd product-inventory
 ```
 
-## What's inside?
+### 2. Start PostgreSQL with Docker
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm build
+```sh
+docker-compose up -d
 ```
 
-### Develop
+### 3. Set up the backend
 
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm dev
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
+```sh
+cd apps/backend
+npm install
+# Set your DATABASE_URL in .env (see .env.example)
+npx prisma migrate dev
+npm run start:dev
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+### 4. Set up the frontend
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
+```sh
+cd apps/frontend
+npm install
+npm run dev
 ```
-npx turbo link
-```
 
-## Useful Links
+---
 
-Learn more about the power of Turborepo:
+## Environment Variables
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+- Copy `.env.example` to `.env` in `apps/backend` and fill in your values.
+
+---
+
+## Scripts
+
+- `docker-compose up -d` — Start PostgreSQL database
+- `npm run start:dev` (in backend) — Start NestJS server
+- `npm run dev` (in frontend) — Start Next.js app
+
+---
+
+## License
+
+MIT
