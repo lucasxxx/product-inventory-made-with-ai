@@ -9,13 +9,19 @@ type Product = {
 
 type ProductListProps = {
   products: Product[];
+  lastProductRef?: (node: any) => void;
 };
 
-export default function ProductList({ products }: ProductListProps) {
+export default function ProductList({ products, lastProductRef }: ProductListProps) {
   return (
     <div className="space-y-4">
-      {products.map(product => (
-        <ProductCard key={product.id} {...product} />
+      {products.map((product, idx) => (
+        <div
+          key={product.id}
+          ref={idx === products.length - 1 ? lastProductRef : undefined}
+        >
+          <ProductCard {...product} />
+        </div>
       ))}
     </div>
   );

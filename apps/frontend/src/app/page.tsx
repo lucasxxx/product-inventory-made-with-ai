@@ -1,22 +1,51 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import ProductHeader from '@/components/ProductHeader';
 import ProductList from '@/components/ProductList';
 import { fetchProducts } from '@/lib/api';
 
+type Product = {
+  id: number;
+  name: string;
+  imageUrl?: string;
+  quantity: number;
+  // add other fields as needed
+};
+
+const PAGE_SIZE = 12;
+
 export default function Home() {
   const [search, setSearch] = useState('');
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastProductRef = useCallback(
+    (node: any) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage(prev => prev + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore]
+  );
 
   useEffect(() => {
-    fetchProducts()
-      .then(data => setProducts(data))
-      .catch(() => setError('Failed to load products'))
+    setLoading(true);
+    fetchProducts(page, PAGE_SIZE)
+      .then(data => {
+        setProducts(prev => [...prev, ...data.products]);
+        setHasMore(page < data.totalPages);
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [page]);
 
   const filtered = products.filter((p: any) =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -30,9 +59,11 @@ export default function Home() {
           setSearch={setSearch}
           onAdd={() => {/* handle add product */}}
         />
+        <ProductList
+          products={filtered}
+          lastProductRef={lastProductRef}
+        />
         {loading && <div className="text-center text-gray-400">Loading...</div>}
-        {error && <div className="text-center text-red-400">{error}</div>}
-        {!loading && !error && <ProductList products={filtered} />}
       </div>
     </div>
   );
