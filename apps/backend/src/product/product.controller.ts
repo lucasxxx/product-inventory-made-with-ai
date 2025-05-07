@@ -20,6 +20,33 @@ export class ProductController {
     return this.productService.findAll(Number(page), Number(pageSize));
   }
 
+  @Get('search')
+  async search(
+    @Query('search') search: string,
+    @Query('page') page = '1',
+    @Query('pageSize') pageSize = '20'
+  ) {
+    try {
+      if (!search || !search.trim()) {
+        return {
+          products: [],
+          total: 0,
+          page: Number(page),
+          pageSize: Number(pageSize),
+          totalPages: 0,
+        };
+      }
+      return await this.productService.searchProducts(
+        search,
+        Number(page),
+        Number(pageSize)
+      );
+    } catch (error) {
+      console.error('Search error:', error);
+      throw error;
+    }
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productService.findOne(Number(id));
@@ -39,4 +66,6 @@ export class ProductController {
   findBySku(@Param('sku') sku: string) {
     return this.productService.findBySku(sku);
   }
+
+ 
 }

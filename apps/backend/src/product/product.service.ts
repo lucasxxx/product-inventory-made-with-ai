@@ -51,4 +51,30 @@ export class ProductService {
   async findBySku(sku: string): Promise<Product | null> {
     return this.prisma.product.findUnique({ where: { sku } });
   }
+
+  async searchProducts(search: string, page: number, pageSize: number) {
+    const where = {
+      OR: [
+        { name: { contains: search, mode: 'insensitive' as const } },
+        { sku: { contains: search, mode: 'insensitive' as const } },
+      ],
+    };
+
+    const [products, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { id: 'asc' },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+    return {
+      products,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
+  }
 }

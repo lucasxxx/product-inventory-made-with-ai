@@ -120,4 +120,29 @@ describe('ProductController', () => {
       expect(mockProductService.remove).toHaveBeenCalledWith(id);
     });
   });
+
+  describe('search', () => {
+    it('should call service.searchProducts and return results', async () => {
+      const search = 'Test';
+      const page = 1;
+      const pageSize = 2;
+      const expectedResult = {
+        products: [],
+        total: 0,
+        page,
+        pageSize,
+        totalPages: 0,
+      };
+
+      const mockService = {
+        ...service,
+        searchProducts: jest.fn().mockResolvedValue(expectedResult),
+      };
+      (controller as any).productService = mockService;
+
+      const result = await controller.search(search, String(page), String(pageSize));
+      expect(mockService.searchProducts).toHaveBeenCalledWith(search, page, pageSize);
+      expect(result).toEqual(expectedResult);
+    });
+  });
 });

@@ -13,10 +13,9 @@ type Product = {
   // add other fields as needed
 };
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 4;
 
 export default function Home() {
-  const [search, setSearch] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -47,20 +46,11 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, [page]);
 
-  const filtered = products.filter((p: any) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-2 sm:px-4">
       <div className="w-full max-w-md sm:max-w-2xl md:max-w-3xl p-4 sm:p-8 bg-black rounded-3xl shadow-md text-white">
-        <ProductHeader
-          search={search}
-          setSearch={setSearch}
-          onAdd={() => {/* handle add product */}}
-        />
         <ProductList
-          products={filtered}
+          products={products}
           lastProductRef={lastProductRef}
         />
         {loading && <div className="text-center text-gray-400">Loading...</div>}

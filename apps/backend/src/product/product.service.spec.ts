@@ -133,4 +133,49 @@ describe('ProductService', () => {
       expect(mockPrismaService.product.delete).toHaveBeenCalledWith({ where: { id } });
     });
   });
+
+  describe('searchProducts', () => {
+    it('should return paginated search results', async () => {
+      const search = 'Test';
+      const page = 1;
+      const pageSize = 2;
+      const expectedProducts = [
+        { id: 1, name: 'Test Product', sku: 'SKU1', price: 10, quantity: 5, barcode: '123', createdAt: new Date(), updatedAt: new Date() },
+        { id: 2, name: 'Another Test', sku: 'SKU2', price: 20, quantity: 10, barcode: '456', createdAt: new Date(), updatedAt: new Date() },
+      ];
+
+      mockPrismaService.$transaction = jest.fn().mockResolvedValue([expectedProducts, expectedProducts.length]);
+
+      const result = await service.searchProducts(search, page, pageSize);
+
+      expect(mockPrismaService.$transaction).toHaveBeenCalledWith([
+        expect.objectContaining({
+          where: {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { sku: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+          skip: 0,
+          take: 2,
+          orderBy: { id: 'asc' },
+        }),
+        expect.objectContaining({
+          where: {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { sku: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+        }),
+      ]);
+      expect(result).toEqual({
+        products: expectedProducts,
+        total: expectedProducts.length,
+        page,
+        pageSize,
+        totalPages: 1,
+      });
+    });
+  });
 });
