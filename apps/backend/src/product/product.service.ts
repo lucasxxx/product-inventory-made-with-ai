@@ -2,14 +2,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Product } from '@prisma/client';
+import { CreateProductDto } from './dto/create-product.dto';
 
 @Injectable()
 export class ProductService {
   constructor(private prisma: PrismaService) {}
 
   // Create a new product
-  async create(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> {
-    return this.prisma.product.create({ data });
+  async create(createProductDto: CreateProductDto): Promise<Product> {
+    return this.prisma.product.create({ data: createProductDto });
   }
 
   // Get all products
@@ -30,5 +31,10 @@ export class ProductService {
   // Delete a product by ID
   async remove(id: number): Promise<Product> {
     return this.prisma.product.delete({ where: { id } });
+  }
+
+  // Get a single product by SKU
+  async findBySku(sku: string): Promise<Product | null> {
+    return this.prisma.product.findUnique({ where: { sku } });
   }
 }
