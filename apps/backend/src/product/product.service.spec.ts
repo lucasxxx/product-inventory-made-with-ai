@@ -14,7 +14,9 @@ describe('ProductService', () => {
       findUnique: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      count: jest.fn(),
     },
+    $transaction: jest.fn().mockResolvedValue([[], 0]),
   };
 
   beforeEach(async () => {
@@ -76,9 +78,18 @@ describe('ProductService', () => {
       ];
 
       mockPrismaService.product.findMany.mockResolvedValue(expectedProducts);
+      mockPrismaService.$transaction = jest.fn().mockResolvedValue([expectedProducts, expectedProducts.length]);
 
-      const result = await service.findAll();
-      expect(result).toEqual(expectedProducts);
+      const page = 1;
+      const pageSize = 2;
+      const result = await service.findAll(page, pageSize);
+      expect(result).toEqual({
+        products: expectedProducts,
+        total: expectedProducts.length,
+        page,
+        pageSize,
+        totalPages: 1,
+      });
       expect(mockPrismaService.product.findMany).toHaveBeenCalled();
     });
   });

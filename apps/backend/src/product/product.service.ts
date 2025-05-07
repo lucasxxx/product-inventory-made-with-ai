@@ -14,8 +14,22 @@ export class ProductService {
   }
 
   // Get all products
-  async findAll(): Promise<Product[]> {
-    return this.prisma.product.findMany();
+  async findAll(page: number, pageSize: number) {
+    const [products, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { id: 'asc' },
+      }),
+      this.prisma.product.count(),
+    ]);
+    return {
+      products,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 
   // Get a single product by ID
