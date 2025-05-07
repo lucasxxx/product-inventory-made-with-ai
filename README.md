@@ -57,6 +57,16 @@ npm install
 npm run dev
 ```
 
+
+### 5. Seeding the Database
+
+After running your migrations, you can populate your database with 100 fake products using the seed script:
+```sh
+cd apps/backend
+npm run seed
+```
+This will use the factory and seeder to insert sample products into your PostgreSQL database.
+
 ---
 
 ## Environment Variables
