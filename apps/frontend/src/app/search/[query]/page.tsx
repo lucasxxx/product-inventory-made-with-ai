@@ -1,56 +1,91 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import ProductList from "@/components/ProductList";
 import { Product } from '@product-inventory/shared-types';
+import { fetchProducts } from "@/lib/api";
+import { ArrowLeft, Search, Loader2 } from "lucide-react";
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 8;
 
 export default function SearchResultsPage() {
   const { query } = useParams();
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const searchQuery = query as string;
+    if (!searchQuery) return;
+
     setLoading(true);
-    fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/products/search?search=${encodeURIComponent(
-        query as string
-      )}&page=1&pageSize=${PAGE_SIZE}`
-    )
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch products");
-        return res.json();
+    fetchProducts(1, PAGE_SIZE, searchQuery)
+      .then((data) => {
+        setProducts(data.products);
       })
-      .then((data) => setProducts(
-        data.products.map((p: any) => ({
-          ...p,
-          description: p.description ?? "",
-          sku: p.sku ?? "",
-          price: p.price ?? 0,
-          category: p.category ?? "",
-          imageUrl: p.imageUrl ?? "",
-          supplier: p.supplier ?? "",
-          barcode: p.barcode ?? "",
-          isActive: p.isActive ?? true,
-          userId: p.userId ?? 0,
-          createdAt: p.createdAt ?? "",
-          updatedAt: p.updatedAt ?? "",
-        }))
-      ))
-      .catch(() => setError("Failed to load products"))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        console.error('Search error:', err);
+        setError("Failed to load products");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [query]);
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-2 sm:px-4">
-      <div className="w-full max-w-md sm:max-w-2xl md:max-w-3xl p-4 sm:p-8 bg-black rounded-3xl shadow-md text-white">
-        <h2 className="text-2xl font-bold mb-4">Search Results for "{query}"</h2>
-        {loading && <div className="text-center text-gray-400">Loading...</div>}
-        {error && <div className="text-center text-red-400">{error}</div>}
-        {!loading && !error && <ProductList products={products} />}
+    <div className="container mx-auto px-4 py-8">
+      <button
+        onClick={() => router.back()}
+        className="inline-flex items-center text-muted-foreground hover:text-foreground mb-8 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back
+      </button>
+
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">Search Results</h1>
+          <p className="text-muted-foreground">
+            Showing results for "{query}"
+          </p>
+        </div>
+
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Searching products...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive flex items-start gap-2">
+            <Search className="h-5 w-5 mt-0.5 flex-shrink-0" />
+            <p>{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && products.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Search className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No products found</h3>
+            <p className="text-muted-foreground">
+              We couldn't find any products matching "{query}"
+            </p>
+          </div>
+        )}
+
+        {!loading && !error && products.length > 0 && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Found {products.length} {products.length === 1 ? 'product' : 'products'}
+              </p>
+            </div>
+            <ProductList products={products} />
+          </div>
+        )}
       </div>
     </div>
   );

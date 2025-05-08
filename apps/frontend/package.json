@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@product-inventory/shared-types": "*",
+    "lucide-react": "^0.508.0",
     "next": "14.1.0",
     "react": "^18",
     "react-dom": "^18",

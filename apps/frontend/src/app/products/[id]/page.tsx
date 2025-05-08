@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { ArrowLeft, Edit, Trash2, Package, DollarSign, Hash, Tag, Calendar, CheckCircle2, XCircle } from "lucide-react";
 
 type Product = {
   id: number;
@@ -61,46 +62,138 @@ export default function ProductDetailPage() {
     }
   };
 
-  if (loading) return <div className="text-center text-gray-400">Loading...</div>;
-  if (error) return <div className="text-center text-red-400">{error}</div>;
-  if (!product) return <div className="text-center text-gray-400">Product not found</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-destructive text-center">
+          <XCircle className="h-8 w-8 mx-auto mb-2" />
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!product) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-muted-foreground text-center">
+          <Package className="h-8 w-8 mx-auto mb-2" />
+          <p>Product not found</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-lg mx-auto p-6 bg-black rounded-3xl shadow-md text-white">
-      <h1 className="text-2xl font-bold mb-4">{product.name}</h1>
-      {product.imageUrl && (
-        <img src={product.imageUrl} alt={product.name} className="w-32 h-32 object-cover rounded mb-4" />
-      )}
-      <ul className="space-y-2">
-        <li><strong>ID:</strong> {product.id}</li>
-        <li><strong>Description:</strong> {product.description || "—"}</li>
-        <li><strong>SKU:</strong> {product.sku}</li>
-        <li><strong>Price:</strong> ${product.price}</li>
-        <li><strong>Quantity:</strong> {product.quantity}</li>
-        <li><strong>Category:</strong> {product.category || "—"}</li>
-        <li><strong>Supplier:</strong> {product.supplier || "—"}</li>
-        <li><strong>Barcode:</strong> {product.barcode}</li>
-        <li><strong>Active:</strong> {product.isActive ? "Yes" : "No"}</li>
-        <li><strong>Created At:</strong> {new Date(product.createdAt).toLocaleString()}</li>
-        <li><strong>Updated At:</strong> {new Date(product.updatedAt).toLocaleString()}</li>
-      </ul>
-      {isAuthenticated && (
-        <div className="flex gap-4 mt-6">
-          <button
-            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onClick={() => router.push(`/products/${id}/edit`)}
-          >
-            Update
-          </button>
-          <button
-            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
-            onClick={handleRemove}
-            disabled={removing}
-          >
-            {removing ? "Removing..." : "Remove"}
-          </button>
+    <div className="container max-w-4xl mx-auto px-4 py-8">
+      <button
+        onClick={() => router.back()}
+        className="inline-flex items-center text-muted-foreground hover:text-foreground mb-8 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back
+      </button>
+
+      <div className="bg-card rounded-xl shadow-soft border border-border/50 overflow-hidden">
+        <div className="p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row gap-8">
+            {product.imageUrl ? (
+              <div className="w-full sm:w-64 h-64 rounded-lg overflow-hidden bg-muted">
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-full sm:w-64 h-64 rounded-lg bg-muted flex items-center justify-center">
+                <Package className="h-12 w-12 text-muted-foreground" />
+              </div>
+            )}
+
+            <div className="flex-1 space-y-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold mb-2">{product.name}</h1>
+                <p className="text-muted-foreground">{product.description || "No description available"}</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center gap-2">
+                  <Hash className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">SKU:</span>
+                  <span>{product.sku}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Price:</span>
+                  <span>${product.price.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Quantity:</span>
+                  <span>{product.quantity}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Tag className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Category:</span>
+                  <span>{product.category || "—"}</span>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Created:</span>
+                  <span>{new Date(product.createdAt).toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Updated:</span>
+                  <span>{new Date(product.updatedAt).toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {product.isActive ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : (
+                  <XCircle className="h-4 w-4 text-destructive" />
+                )}
+                <span className="text-sm text-muted-foreground">Status:</span>
+                <span>{product.isActive ? "Active" : "Inactive"}</span>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
+
+        {isAuthenticated && (
+          <div className="px-6 sm:px-8 py-4 bg-muted/50 border-t border-border/50 flex gap-4">
+            <button
+              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              onClick={() => router.push(`/products/${id}/edit`)}
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Update
+            </button>
+            <button
+              className="inline-flex items-center justify-center rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+              onClick={handleRemove}
+              disabled={removing}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {removing ? "Removing..." : "Remove"}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

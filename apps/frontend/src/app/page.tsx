@@ -6,7 +6,7 @@ import ProductList from '@/components/ProductList';
 import { fetchProducts } from '@/lib/api';
 import { Product } from '@product-inventory/shared-types';
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 8;
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -40,21 +40,26 @@ export default function Home() {
   }, [page]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 to-black">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-4xl font-bold text-white mb-8 text-center">
-            Product Inventory
-          </h1>
+    <main className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background/90">
+      <div className="container mx-auto px-4 py-12 sm:py-16 lg:py-20">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <div className="text-center space-y-4 animate-fade-in">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">
+              Product Inventory
+            </h1>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Browse through our extensive collection of products. Find exactly what you need with our intuitive interface.
+            </p>
+          </div>
           
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-700/50">
+          <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-xl border border-border/50 animate-fade-in">
             <ProductList
               products={products}
               lastProductRef={lastProductRef}
             />
             {loading && (
               <div className="flex justify-center items-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
               </div>
             )}
           </div>
