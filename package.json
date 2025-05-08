@@ -1,6 +1,7 @@
 {
   "name": "product-inventory",
   "private": true,
+  "packageManager": "npm@9.0.0",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -9,14 +10,18 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.1.5",
+    "@tailwindcss/postcss": "^4.1.5",
     "prettier": "^3.5.3",
     "turbo": "^2.5.3",
     "typescript": "5.8.2"
   },
+  "dependencies": {
+    "tailwindcss": "^4.1.5"
+  },
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "npm@10.2.4",
   "workspaces": [
     "apps/*",
     "packages/*"
