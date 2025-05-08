@@ -1,18 +1,23 @@
 import { faker } from '@faker-js/faker';
-import { Product } from '@prisma/client';
+import { Product } from '@product-inventory/shared-types';
 
-export const createProduct = (): Omit<Product, 'id' | 'createdAt' | 'updatedAt'> => {
+let productCounter = 1;
+
+export const createProduct = (overrides = {}) => {
+  const count = productCounter++;
   return {
-    name: faker.commerce.productName(),
-    description: faker.commerce.productDescription(),
-    sku: faker.string.alphanumeric(10).toUpperCase(),
-    price: parseFloat(faker.commerce.price()),
-    quantity: faker.number.int({ min: 0, max: 1000 }),
-    category: faker.commerce.department(),
-    imageUrl: faker.image.url(),
-    supplier: faker.company.name(),
-    barcode: faker.string.numeric(12),
-    isActive: faker.datatype.boolean(),
+    name: `Test Product ${count}`,
+    description: 'Test Description',
+    sku: `TEST-SKU-${count.toString().padStart(3, '0')}`,
+    price: 99.99,
+    quantity: 10,
+    category: 'Test Category',
+    imageUrl: 'https://example.com/image.jpg',
+    supplier: 'Test Supplier',
+    barcode: faker.string.numeric(13),
+    isActive: true,
+    userId: 1,
+    ...overrides,
   };
 };
 

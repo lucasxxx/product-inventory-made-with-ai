@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductService } from './product.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { Product } from '@prisma/client';
+import { Product } from '../interfaces/product.interface';
+import { BadRequestException } from '@nestjs/common';
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -15,6 +16,7 @@ describe('ProductService', () => {
       update: jest.fn(),
       delete: jest.fn(),
       count: jest.fn(),
+      findFirst: jest.fn(),
     },
     $transaction: jest.fn().mockResolvedValue([[], 0]),
   };
@@ -48,9 +50,9 @@ describe('ProductService', () => {
 
       mockPrismaService.product.create.mockResolvedValue(expectedProduct);
 
-      const result = await service.create(productData);
+      const result = await service.create(productData, 1);
       expect(result).toEqual(expectedProduct);
-      expect(mockPrismaService.product.create).toHaveBeenCalledWith({ data: productData });
+      expect(mockPrismaService.product.create).toHaveBeenCalledWith({ data: { ...productData, userId: 1 } });
     });
 
     it('should fail if required values are empty', async () => {
@@ -65,8 +67,29 @@ describe('ProductService', () => {
       // Mock Prisma to throw an error
       mockPrismaService.product.create.mockRejectedValue(new Error('Validation failed'));
 
-      await expect(service.create(invalidProductData)).rejects.toThrow('Validation failed');
-      expect(mockPrismaService.product.create).toHaveBeenCalledWith({ data: invalidProductData });
+      await expect(service.create(invalidProductData, 1)).rejects.toThrow('Validation failed');
+      expect(mockPrismaService.product.create).toHaveBeenCalledWith({ data: { ...invalidProductData, userId: 1 } });
+    });
+
+    it('should throw BadRequestException if duplicate name, sku, or barcode exists', async () => {
+      const productData = {
+        name: 'Duplicate Name',
+        sku: 'DUPLICATE-SKU',
+        price: 19.99,
+        quantity: 100,
+        barcode: 'DUPLICATE-BARCODE',
+      };
+      mockPrismaService.product.findFirst.mockResolvedValue({ id: 2, ...productData });
+      await expect(service.create(productData, 1)).rejects.toThrow(BadRequestException);
+      expect(mockPrismaService.product.findFirst).toHaveBeenCalledWith({
+        where: {
+          OR: [
+            { name: productData.name },
+            { sku: productData.sku },
+            { barcode: productData.barcode },
+          ],
+        },
+      });
     });
   });
 
@@ -115,9 +138,32 @@ describe('ProductService', () => {
 
       mockPrismaService.product.update.mockResolvedValue(expectedProduct);
 
-      const result = await service.update(id, updateData);
+      const result = await service.update(id, updateData, 1);
       expect(result).toEqual(expectedProduct);
       expect(mockPrismaService.product.update).toHaveBeenCalledWith({ where: { id }, data: updateData });
+    });
+
+    it('should throw BadRequestException if updating to duplicate name, sku, or barcode', async () => {
+      const id = 1;
+      const updateData = {
+        name: 'Duplicate Name',
+        sku: 'DUPLICATE-SKU',
+        barcode: 'DUPLICATE-BARCODE',
+      };
+      const product = { id, userId: 1 };
+      mockPrismaService.product.findUnique.mockResolvedValue(product);
+      mockPrismaService.product.findFirst.mockResolvedValue({ id: 2, ...updateData });
+      await expect(service.update(id, updateData, 1)).rejects.toThrow(BadRequestException);
+      expect(mockPrismaService.product.findFirst).toHaveBeenCalledWith({
+        where: {
+          id: { not: id },
+          OR: [
+            { name: updateData.name },
+            { sku: updateData.sku },
+            { barcode: updateData.barcode },
+          ],
+        },
+      });
     });
   });
 
@@ -128,7 +174,7 @@ describe('ProductService', () => {
 
       mockPrismaService.product.delete.mockResolvedValue(expectedProduct);
 
-      const result = await service.remove(id);
+      const result = await service.remove(id, 1);
       expect(result).toEqual(expectedProduct);
       expect(mockPrismaService.product.delete).toHaveBeenCalledWith({ where: { id } });
     });

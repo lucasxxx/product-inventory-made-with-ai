@@ -1,71 +1,62 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req } from '@nestjs/common';
 import { ProductService } from './product.service';
-import { Product } from '@prisma/client';
-import { CreateProductDto } from './dto/create-product.dto';
+import { CreateProductDto, UpdateProductDto, Product, User } from '@product-inventory/shared-types';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: User;
+}
 
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
+  @UseGuards(JwtAuthGuard)
+  create(@Body() createProductDto: CreateProductDto, @Req() req: RequestWithUser) {
+    return this.productService.create(createProductDto, req.user.id);
   }
 
   @Get()
-  async findAll(
-    @Query('page') page = '1',
-    @Query('pageSize') pageSize = '4'
+  findAll(
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '10',
+    @Query('search') search?: string,
   ) {
-    return this.productService.findAll(Number(page), Number(pageSize));
-  }
+    const parsedPage = parseInt(page, 10);
+    const parsedPageSize = parseInt(pageSize, 10);
 
-  @Get('search')
-  async search(
-    @Query('search') search: string,
-    @Query('page') page = '1',
-    @Query('pageSize') pageSize = '20'
-  ) {
-    try {
-      if (!search || !search.trim()) {
-        return {
-          products: [],
-          total: 0,
-          page: Number(page),
-          pageSize: Number(pageSize),
-          totalPages: 0,
-        };
-      }
-      return await this.productService.searchProducts(
-        search,
-        Number(page),
-        Number(pageSize)
-      );
-    } catch (error) {
-      console.error('Search error:', error);
-      throw error;
+    if (search) {
+      return this.productService.searchProducts(search, parsedPage, parsedPageSize);
     }
+
+    return this.productService.findAll(parsedPage, parsedPageSize);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.productService.findOne(Number(id));
+    return this.productService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() data: Partial<Omit<Product, 'id' | 'createdAt' | 'updatedAt'>>) {
-    return this.productService.update(Number(id), data);
+  @UseGuards(JwtAuthGuard)
+  update(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.productService.update(+id, updateProductDto, req.user.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productService.remove(Number(id));
+  @UseGuards(JwtAuthGuard)
+  remove(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.productService.remove(+id, req.user.id);
   }
 
   @Get('sku/:sku')
   findBySku(@Param('sku') sku: string) {
     return this.productService.findBySku(sku);
   }
-
- 
 }
