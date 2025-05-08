@@ -1,9 +1,9 @@
 # Product Inventory Monorepo
 
-This is a monorepo for a production-ready Product Inventory application, built with:
+A modern product inventory application built with a monorepo architecture, featuring:
 
-- **Frontend:** Next.js (TypeScript)
-- **Backend:** NestJS (TypeScript)
+- **Frontend:** Next.js 14 with TypeScript and Tailwind CSS 4.1
+- **Backend:** NestJS with TypeScript
 - **Database:** PostgreSQL (via Docker)
 - **ORM:** Prisma
 - **Monorepo Tooling:** Turborepo
@@ -14,9 +14,12 @@ This is a monorepo for a production-ready Product Inventory application, built w
 ## Project Structure
 product-inventory/
 ├── apps/
-│ ├── frontend/ # Next.js app
+│ ├── frontend/ # Next.js app with Tailwind CSS
 │ └── backend/ # NestJS app
-├── packages/ # (optional: shared code/config)
+├── packages/
+│ ├── eslint-config/ # Shared ESLint configuration
+│ ├── shared-types/ # Shared TypeScript types
+│ └── typescript-config/ # Shared TypeScript configuration
 ├── docker-compose.yml
 ├── turbo.json
 └── README.md
@@ -26,10 +29,16 @@ product-inventory/
 
 ## Getting Started
 
+## Prerequisites
+
+- Node.js >= 18
+- Docker and Docker Compose
+- npm >= 9.0.0
+
 ### 1. Clone the repository
 
 ```sh
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+git clone git@github.com:lucasxxx/product-inventory-made-with-ai.git
 cd product-inventory
 ```
 
@@ -39,22 +48,14 @@ cd product-inventory
 docker-compose up -d
 ```
 
-### 3. Set up the backend
+### 3. Set up 
 
 ```sh
-cd apps/backend
 npm install
 # Set your DATABASE_URL in .env (see .env.example)
+cd apps/backend
 npx prisma migrate dev
-npm run start:dev
-```
-
-### 4. Set up the frontend
-
-```sh
-cd apps/frontend
-npm install
-npm run dev
+npx prisma migrate dev
 ```
 
 
@@ -69,17 +70,19 @@ This will use the factory and seeder to insert sample products into your Postgre
 
 ---
 
-## Environment Variables
+### 6. Running the project
 
-- Copy `.env.example` to `.env` in `apps/backend` and fill in your values.
+On the root folder just run
+```sh
+npm run dev
+```
+This will start all servers
 
 ---
 
-## Scripts
+## Environment Variables
 
-- `docker-compose up -d` — Start PostgreSQL database
-- `npm run start:dev` (in backend) — Start NestJS server
-- `npm run dev` (in frontend) — Start Next.js app
+- Copy `.env.example` to `.env` in `apps/backend` and `apps/frontend` and fill in your values.
 
 ---
 
