@@ -3,14 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import ProductList from "@/components/ProductList";
-
-type Product = {
-  id: number;
-  name: string;
-  imageUrl?: string;
-  quantity: number;
-  // add other fields as needed
-};
+import { Product } from '@product-inventory/shared-types';
 
 const PAGE_SIZE = 4;
 
@@ -31,7 +24,22 @@ export default function SearchResultsPage() {
         if (!res.ok) throw new Error("Failed to fetch products");
         return res.json();
       })
-      .then((data) => setProducts(data.products))
+      .then((data) => setProducts(
+        data.products.map((p: any) => ({
+          ...p,
+          description: p.description ?? "",
+          sku: p.sku ?? "",
+          price: p.price ?? 0,
+          category: p.category ?? "",
+          imageUrl: p.imageUrl ?? "",
+          supplier: p.supplier ?? "",
+          barcode: p.barcode ?? "",
+          isActive: p.isActive ?? true,
+          userId: p.userId ?? 0,
+          createdAt: p.createdAt ?? "",
+          updatedAt: p.updatedAt ?? "",
+        }))
+      ))
       .catch(() => setError("Failed to load products"))
       .finally(() => setLoading(false));
   }, [query]);

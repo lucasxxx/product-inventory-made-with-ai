@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth/AuthContext";
 
 type Product = {
   id: number;
@@ -21,9 +22,12 @@ type Product = {
 
 export default function ProductDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [removing, setRemoving] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -39,6 +43,23 @@ export default function ProductDetailPage() {
       .catch(() => setError("Failed to load product"))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const handleRemove = async () => {
+    if (!window.confirm("Are you sure you want to remove this product?")) return;
+    setRemoving(true);
+    try {
+      const res = await fetch(`/api/products/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to remove product");
+      router.push("/");
+    } catch {
+      setError("Failed to remove product");
+    } finally {
+      setRemoving(false);
+    }
+  };
 
   if (loading) return <div className="text-center text-gray-400">Loading...</div>;
   if (error) return <div className="text-center text-red-400">{error}</div>;
@@ -63,6 +84,23 @@ export default function ProductDetailPage() {
         <li><strong>Created At:</strong> {new Date(product.createdAt).toLocaleString()}</li>
         <li><strong>Updated At:</strong> {new Date(product.updatedAt).toLocaleString()}</li>
       </ul>
+      {isAuthenticated && (
+        <div className="flex gap-4 mt-6">
+          <button
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onClick={() => router.push(`/products/${id}/edit`)}
+          >
+            Update
+          </button>
+          <button
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+            onClick={handleRemove}
+            disabled={removing}
+          >
+            {removing ? "Removing..." : "Remove"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

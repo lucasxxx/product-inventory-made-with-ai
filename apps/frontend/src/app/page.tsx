@@ -4,14 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import ProductHeader from '@/components/ProductHeader';
 import ProductList from '@/components/ProductList';
 import { fetchProducts } from '@/lib/api';
-
-type Product = {
-  id: number;
-  name: string;
-  imageUrl?: string;
-  quantity: number;
-  // add other fields as needed
-};
+import { Product } from '@product-inventory/shared-types';
 
 const PAGE_SIZE = 4;
 
@@ -47,14 +40,26 @@ export default function Home() {
   }, [page]);
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-2 sm:px-4">
-      <div className="w-full max-w-md sm:max-w-2xl md:max-w-3xl p-4 sm:p-8 bg-black rounded-3xl shadow-md text-white">
-        <ProductList
-          products={products}
-          lastProductRef={lastProductRef}
-        />
-        {loading && <div className="text-center text-gray-400">Loading...</div>}
+    <main className="min-h-screen bg-gradient-to-br from-gray-900 to-black">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-4xl font-bold text-white mb-8 text-center">
+            Product Inventory
+          </h1>
+          
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-gray-700/50">
+            <ProductList
+              products={products}
+              lastProductRef={lastProductRef}
+            />
+            {loading && (
+              <div className="flex justify-center items-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
