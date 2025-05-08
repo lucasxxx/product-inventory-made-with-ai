@@ -31,22 +31,45 @@ export default function EditProductPage() {
     setError('');
     setIsLoading(true);
     try {
+      // Ensure all required fields are present and properly formatted
+      const updateData = {
+        ...data,
+        price: typeof data.price === 'string' ? parseFloat(data.price) : data.price,
+        quantity: typeof data.quantity === 'string' ? parseInt(data.quantity, 10) : data.quantity,
+        isActive: data.isActive ?? true,
+      };
+
+      console.log('Sending update request:', {
+        id,
+        data: updateData,
+      });
+
       const response = await fetch(`/api/products/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...data,
-          price: parseFloat(data.price.toString()),
-          quantity: parseInt(data.quantity.toString()),
-        }),
+        body: JSON.stringify(updateData),
+        credentials: 'include',
       });
+
+      const responseData = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to update product');
+        console.error('Update failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: responseData,
+        });
+        throw new Error(responseData.message || 'Failed to update product');
       }
+
       router.push(`/products/${id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Update error:', {
+        error: err,
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined,
+      });
+      setError(err instanceof Error ? err.message : 'An error occurred while updating the product');
     } finally {
       setIsLoading(false);
     }
